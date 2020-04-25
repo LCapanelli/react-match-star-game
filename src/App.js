@@ -15,7 +15,7 @@ const ButtonNumber = props => (
   <button 
     className="number" 
     style={{ backgroundColor: colors[props.status] }}
-    onClick={() => console.log( 'Num', props.number )}
+    onClick={() => props.onClick( props.number, props.status )}
     >
     { props.number }
   </button> 
@@ -28,14 +28,31 @@ const StarMatch = () => {
   
   const candidatesWrong = utils.sum(candidateNums) > stars;  
 
-  const numberStatus = (number) => {
+  const numberStatus = number => {
     if (!availableNums.includes(number)) {
       return 'used'; 
     }
     if (candidateNums.includes(number)) {
-      return candidatesWrong ? 'worng' : 'candidate'; 
+      return candidatesWrong ? 'wrong' : 'candidate'; 
     }
     return 'available'; 
+  }; 
+
+  const onNumberClick = (number, currentStatus) => {
+    if (currentStatus === 'used') {
+      return; 
+    }
+    const newCandidateNums = candidateNums.concat(number);
+    if (utils.sum(newCandidateNums) !== stars) {
+      setCandidateNums(newCandidateNums);
+    } else {
+        const newAvailableNums = availableNums.filter(
+          n => !newCandidateNums.includes(n) 
+        ); 
+        setStars(utils.randomSumIn(newAvailableNums, 9)); 
+        setAvailableNums(newAvailableNums);
+        setCandidateNums([]);  
+    }
   }; 
 
   return (
@@ -45,18 +62,17 @@ const StarMatch = () => {
       </div>
       <div className="body">
         <div className="left">
-          { utils.range(1, stars).map(starId =>
-            <StarsDisplay count={ stars } />
-          )}
+          <StarsDisplay count={ stars } />
         </div>
         <div className="right">
-          { utils.range(1, 9).map(number =>
-            <ButtonNumber 
-            key={ number } 
-            status={ numberStatus(number) }
-            number={ number } 
+          {utils.range(1, 9).map(number => (
+            <ButtonNumber
+              key={ number }
+              status={ numberStatus(number) }
+              number={ number }
+              onClick={ onNumberClick } 
             />
-          )}
+          ))}
         </div>
       </div>
       <div className="timer">Time Remaining: 10</div>
